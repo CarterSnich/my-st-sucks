@@ -71,13 +71,13 @@ static unsigned int blinktimeout = 800;
 /*
  * thickness of underline and bar cursors
  */
-static unsigned int cursorthickness = 2;
+static unsigned int cursorthickness = 1;
 
 /*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
  * it
  */
-static int bellvolume = 10;
+static int bellvolume = 100;
 
 /* default TERM value */
 char *termname = "st-256color";
@@ -97,37 +97,37 @@ char *termname = "st-256color";
  *
  *	stty tabs
  */
-unsigned int tabspaces = 8;
+unsigned int tabspaces = 4;
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
 	/* 8 normal colors */
-	"black",
-	"red3",
-	"green3",
-	"yellow3",
-	"blue2",
-	"magenta3",
-	"cyan3",
-	"gray90",
+  "#2e3436",
+  "#cc0000",
+	"#4e9a06",
+	"#c4a000",
+	"#3456a4",
+	"#75507b",
+	"#06989a",
+	"#d3d7cf",
 
 	/* 8 bright colors */
-	"gray50",
-	"red",
-	"green",
-	"yellow",
-	"#5c5cff",
-	"magenta",
-	"cyan",
-	"white",
+	"#555753",
+	"#ef2929",
+	"#8ae234",
+	"#fce94f",
+	"#729fcf",
+	"#ad7fa8",
+	"#34e2e2",
+	"#eeeeec",
 
 	[255] = 0,
 
 	/* more colors can be added after 255 to use with DefaultXX */
 	"#cccccc",
 	"#555555",
-	"gray90", /* default foreground colour */
-	"black", /* default background colour */
+	"#cccccc", /* default foreground colour */
+	"#000000", /* default background colour */
 };
 
 
@@ -136,7 +136,7 @@ static const char *colorname[] = {
  * foreground, background, cursor, reverse cursor
  */
 unsigned int defaultfg = 258;
-unsigned int defaultbg = 259;
+unsigned int defaultbg = 0; /* 259; */
 unsigned int defaultcs = 256;
 static unsigned int defaultrcs = 257;
 
@@ -153,14 +153,14 @@ static unsigned int defaultrcs = 257;
  * 7: blinking st cursor
  * 8: steady st cursor
  */
-static unsigned int cursorstyle = 6;
+static unsigned int cursorstyle = 5;
 static Rune stcursor = 0x2603; /* snowman ("☃") */
 
 /*
  * Default columns and rows numbers
  */
 
-static unsigned int cols = 80;
+static unsigned int cols = 76;
 static unsigned int rows = 24;
 
 /*
@@ -204,9 +204,9 @@ ResourcePref resources[] = {
 		{ "color13",      STRING,  &colorname[13] },
 		{ "color14",      STRING,  &colorname[14] },
 		{ "color15",      STRING,  &colorname[15] },
-		{ "background",   STRING,  &colorname[256] },
+		{ "background",   STRING,  &colorname[0] },
 		{ "foreground",   STRING,  &colorname[257] },
-		{ "cursorColor",  STRING,  &colorname[258] },
+		{ "cursorColor",  STRING,  &colorname[7] },
 		{ "termname",     STRING,  &termname },
 		{ "shell",        STRING,  &shell },
 		{ "minlatency",   INTEGER, &minlatency },
@@ -229,7 +229,7 @@ static MouseShortcut mshortcuts[] = {
 	{ ShiftMask,            Button5, kscrolldown,    {.i = 1} },
 	{ XK_ANY_MOD,           Button2, selpaste,       {.i = 0},      1 },
 	{ ShiftMask,            Button4, ttysend,        {.s = "\033[5;2~"} },
-	{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },
+	/*{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },*/
 	{ ShiftMask,            Button5, ttysend,        {.s = "\033[6;2~"} },
 	{ XK_ANY_MOD,           Button5, ttysend,        {.s = "\005"} },
 };
@@ -252,8 +252,10 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
 	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
-	{ ShiftMask,            XK_Up,     	kscrollup,      {.i = -1} },
-    	{ ShiftMask,            XK_Down,   	kscrolldown,    {.i = -1} },
+	{ ShiftMask,            XK_Page_Up,     kscrollup,      {.i = -1} },
+  { ShiftMask,            XK_Page_Down,   kscrolldown,    {.i = -1} },
+  { ShiftMask,            XK_Up,     	    kscrollup,      {.i = 1} },
+  { ShiftMask,            XK_Down,   	    kscrolldown,    {.i = 1} },
 };
 
 /*
