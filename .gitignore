@@ -1,0 +1,6 @@
+*.orig
+*.rej
+st
+st.desktop
+st.o
+x.o
