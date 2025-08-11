@@ -8,8 +8,8 @@
 static char *font = "ProggyClean Nerd Font:pixelsize=16:antialias=true:autohint=true";
 
 /* disable bold, italic and roman fonts globally */
-int disablebold = 0;
-int disableitalic = 0;
+int disablebold = 1;
+int disableitalic = 1;
 int disableroman = 0;
 
 static int borderpx = 2;
