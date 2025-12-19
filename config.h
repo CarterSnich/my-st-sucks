@@ -5,7 +5,13 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "ProggyClean Nerd Font:pixelsize=16:autohint=true";
+static char *font = "ProggyClean Nerd Font:pixelsize=16";
+
+/* disable bold, italic and roman fonts globally */
+int disablebold = 1;
+int disableitalic = 1;
+int disableroman = 1;
+
 static int borderpx = 2;
 
 /*
