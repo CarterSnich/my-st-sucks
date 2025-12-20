@@ -113,6 +113,7 @@ typedef struct {
 typedef struct {
 	int row;      /* nb row */
 	int col;      /* nb col */
+	int maxcol;   /* Maximum number of columns */
 	Line *line;   /* screen */
 	Line *alt;    /* alternate screen */
 	int *dirty;   /* dirtyness of lines */
@@ -1231,8 +1232,8 @@ tclearregion(int x1, int y1, int x2, int y2)
 	if (y1 > y2)
 		temp = y1, y1 = y2, y2 = temp;
 
-	LIMIT(x1, 0, term.col-1);
-	LIMIT(x2, 0, term.col-1);
+	LIMIT(x1, 0, term.maxcol-1);
+	LIMIT(x2, 0, term.maxcol-1);
 	LIMIT(y1, 0, term.row-1);
 	LIMIT(y2, 0, term.row-1);
 
@@ -1823,6 +1824,33 @@ csihandle(void)
 			goto unknown;
 		}
 		break;
+	case 't': /* title stack operations */
+		switch (csiescseq.arg[0]) {
+		case 22: /* pust current title on stack */
+			switch (csiescseq.arg[1]) {
+			case 0:
+			case 1:
+			case 2:
+				xpushtitle();
+				break;
+			default:
+				goto unknown;
+			}
+			break;
+		case 23: /* pop last title from stack */
+			switch (csiescseq.arg[1]) {
+			case 0:
+			case 1:
+			case 2:
+				xsettitle(NULL, 1);
+				break;
+			default:
+				goto unknown;
+			}
+			break;
+		default:
+			goto unknown;
+		}
 	}
 }
 
@@ -1901,7 +1929,7 @@ strhandle(void)
 		switch (par) {
 		case 0:
 			if (narg > 1) {
-				xsettitle(strescseq.args[1]);
+				xsettitle(strescseq.args[1], 0);
 				xseticontitle(strescseq.args[1]);
 			}
 			return;
@@ -1911,7 +1939,7 @@ strhandle(void)
 			return;
 		case 2:
 			if (narg > 1)
-				xsettitle(strescseq.args[1]);
+				xsettitle(strescseq.args[1], 0);
 			return;
 		case 52: /* manipulate selection data */
 			if (narg > 2 && allowwindowops) {
@@ -1983,7 +2011,7 @@ strhandle(void)
 		}
 		break;
 	case 'k': /* old title set compatibility */
-		xsettitle(strescseq.args[0]);
+		xsettitle(strescseq.args[0], 0);
 		return;
 	case 'P': /* DCS -- Device Control String */
 	case '_': /* APC -- Application Program Command */
@@ -2355,6 +2383,7 @@ eschandle(uchar ascii)
 		break;
 	case 'c': /* RIS -- Reset to initial state */
 		treset();
+		xfreetitlestack();
 		resettitle();
 		xloadcols();
 		xsetmode(0, MODE_HIDE);
@@ -2569,10 +2598,17 @@ void
 tresize(int col, int row)
 {
 	int i;
-	int minrow = MIN(row, term.row);
-	int mincol = MIN(col, term.col);
+	int tmp;
+	int minrow, mincol;
 	int *bp;
 	TCursor c;
+
+	tmp = col;
+	if (!term.maxcol)
+		term.maxcol = term.col;
+	col = MAX(col, term.maxcol);
+	minrow = MIN(row, term.row);
+	mincol = MIN(col, term.maxcol);
 
 	if (col < 1 || row < 1) {
 		fprintf(stderr,
@@ -2616,17 +2652,18 @@ tresize(int col, int row)
 		term.line[i] = xmalloc(col * sizeof(Glyph));
 		term.alt[i] = xmalloc(col * sizeof(Glyph));
 	}
-	if (col > term.col) {
-		bp = term.tabs + term.col;
+	if (col > term.maxcol) {
+		bp = term.tabs + term.maxcol;
 
-		memset(bp, 0, sizeof(*term.tabs) * (col - term.col));
+		memset(bp, 0, sizeof(*term.tabs) * (col - term.maxcol));
 		while (--bp > term.tabs && !*bp)
 			/* nothing */ ;
 		for (bp += tabspaces; bp < term.tabs + col; bp += tabspaces)
 			*bp = 1;
 	}
 	/* update terminal size */
-	term.col = col;
+	term.col = tmp;
+	term.maxcol = col;
 	term.row = row;
 	/* reset scrolling region */
 	tsetscroll(0, row-1);
@@ -2650,7 +2687,7 @@ tresize(int col, int row)
 void
 resettitle(void)
 {
-	xsettitle(NULL);
+	xsettitle(NULL, 0);
 }
 
 void
